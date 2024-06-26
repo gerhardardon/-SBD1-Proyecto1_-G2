@@ -1,14 +1,48 @@
 /*1. Mostrar el estudiante con mejor promedio por carrera el cual haya empezado a
 estudiar antes del 2022.*/
 
+SELECT e.numero_carnet, e.nombre_completo, e.numero_carrera, AVG(i.nota) AS promedio
+FROM Estudiante e
+JOIN Inscripcion i ON e.numero_carnet = i.numero_carnet
+JOIN Carrera c ON e.numero_carrera = c.numero_carrera
+WHERE i.fecha_inscripcion < TO_DATE('2022-01-01', 'YYYY-MM-DD')
+GROUP BY e.numero_carnet, e.nombre_completo, e.numero_carrera
+HAVING AVG(i.nota) = (
+    SELECT MAX(promedio)
+    FROM (
+        SELECT e.numero_carrera, AVG(i.nota) AS promedio
+        FROM Estudiante e
+        JOIN Inscripcion i ON e.numero_carnet = i.numero_carnet
+        WHERE i.fecha_inscripcion < TO_DATE('2022-01-01', 'YYYY-MM-DD')
+        GROUP BY e.numero_carrera
+    )
+);
 
 /*2. Mostrar los cursos que se imparten en un mismo horario en un ciclo y año
 determinado, debe mostrar código de curso, nombre del curso, carrera a la que
-pertenece, sección, horario, día, salón, edificio y catedrático que lo imparte.*/
+pertenece, sección, horario, día, salón, edificio y catedrático que lo imparte.
+Remplazar ciclo y año*/
 
+SELECT c.codigo_curso, c.nombre_curso, carr.nombre_carrera, sec.codigo_seccion, h.dia, h.hora_inicio, h.hora_fin, s.codigo_salon, s.codigo_edificio, cat.nombre_completo AS nombre_catedratico
+FROM Curso c
+JOIN Seccion sec ON c.codigo_curso = sec.codigo_curso
+JOIN Horario h ON sec.codigo_seccion = h.codigo_seccion
+JOIN Salon s ON h.codigo_salon = s.codigo_salon
+JOIN Catedratico cat ON sec.codigo_catedratico = cat.codigo_catedratico
+JOIN Carrera carr ON c.codigo_carrera = carr.codigo_carrera
+WHERE h.ciclo = 'Ciclo_determinado' AND h.anno = 'Año_determinado';
 
+/*3. Mostrar la información de los cursos pertenecientes a una carrera en específico.
+reemplazar nombre de carrea en especfiica */
 
-/*3. Mostrar la información de los cursos pertenecientes a una carrera en específico.*/
+SELECT c.codigo_curso, c.nombre_curso, carr.nombre_carrera, sec.codigo_seccion, h.dia, h.hora_inicio, h.hora_fin, s.codigo_salon, s.codigo_edificio, cat.nombre_completo AS nombre_catedratico
+FROM Curso c
+JOIN Seccion sec ON c.codigo_curso = sec.codigo_curso
+JOIN Horario h ON sec.codigo_seccion = h.codigo_seccion
+JOIN Salon s ON h.codigo_salon = s.codigo_salon
+JOIN Catedratico cat ON sec.codigo_catedratico = cat.codigo_catedratico
+JOIN Carrera carr ON c.codigo_carrera = carr.codigo_carrera
+WHERE carr.nombre_carrera = 'Nombre_Carrera_Especifica';
 
 
 /*4. Mostrarla información de los cursos prerrequisito y post requisito de un curso en
