@@ -33,7 +33,7 @@ JOIN Carrera carr ON c.codigo_carrera = carr.codigo_carrera
 WHERE h.ciclo = 'Ciclo_determinado' AND h.anno = 'Año_determinado';
 
 /*3. Mostrar la información de los cursos pertenecientes a una carrera en específico.
-reemplazar nombre de carrea en especfiica */
+reemplazar Nombre_Carrera_Especifica */
 
 SELECT c.codigo_curso, c.nombre_curso, carr.nombre_carrera, sec.codigo_seccion, h.dia, h.hora_inicio, h.hora_fin, s.codigo_salon, s.codigo_edificio, cat.nombre_completo AS nombre_catedratico
 FROM Curso c
@@ -47,7 +47,22 @@ WHERE carr.nombre_carrera = 'Nombre_Carrera_Especifica';
 
 /*4. Mostrarla información de los cursos prerrequisito y post requisito de un curso en
 específico.*/
-
+--Consulta 4
+SELECT
+    post.nombre AS curso_prerrequisito,
+    pre.nombre AS curso_post_requisito
+FROM
+    curso c
+LEFT JOIN
+    prerrequisito pr ON c.codigo_curso = pr.curso_codigo_curso1
+LEFT JOIN
+    curso post ON pr.curso_codigo_curso = post.codigo_curso
+LEFT JOIN
+    prerrequisito po ON c.codigo_curso = po.curso_codigo_curso
+LEFT JOIN
+    curso pre ON po.curso_codigo_curso1 = pre.codigo_curso
+WHERE
+    c.codigo_curso = 103;--cambiar al codigo de curso que se desea
 
 /*5. Mostrar los cursos impartidos por un determinado docente, mostrar la información
 necesaria para cada curso.*/
