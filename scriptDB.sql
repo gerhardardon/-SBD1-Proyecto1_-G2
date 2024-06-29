@@ -1,218 +1,199 @@
+CREATE TABLE asignacion (
+    id_asignacion               INTEGER NOT NULL,
+    año                         INTEGER NOT NULL,
+    ciclo                       VARCHAR2(100) NOT NULL,
+    zona                        INTEGER NOT NULL,
+    nota                        INTEGER NOT NULL,
+    seccion_codigo_seccion      INTEGER NOT NULL,
+    estudiante_numero_de_carnet INTEGER NOT NULL
+);
 
--- -----------------------------------------------------
--- DATEBASE mydb
--- -----------------------------------------------------
--- -----------------------------------------------------
--- DATEBASE sbd1p1
--- -----------------------------------------------------
-DROP DATEBASE IF EXISTS `sbd1p1` ;
+ALTER TABLE asignacion ADD CONSTRAINT asignacion_pk PRIMARY KEY ( id_asignacion );
 
--- -----------------------------------------------------
--- DATEBASE sbd1p1
--- -----------------------------------------------------
-CREATE DATEBASE IF NOT EXISTS `sbd1p1` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci ;
-USE `sbd1p1` ;
+CREATE TABLE carrera (
+    codigo_carrera INTEGER NOT NULL,
+    nombre         VARCHAR2(100) NOT NULL
+);
 
--- -----------------------------------------------------
--- Table `sbd1p1`.`carrera`
--- -----------------------------------------------------
-DROP TABLE IF EXISTS `sbd1p1`.`carrera` ;
+ALTER TABLE carrera ADD CONSTRAINT carrera_pk PRIMARY KEY ( codigo_carrera );
 
-CREATE TABLE IF NOT EXISTS `sbd1p1`.`carrera` (
-  `codigo_carrera` VARCHAR(10) NOT NULL,
-  `nombre_carrera` VARCHAR(100) NULL DEFAULT NULL,
-  PRIMARY KEY (`codigo_carrera`))
+CREATE TABLE catedratico (
+    codigo_catedratico INTEGER NOT NULL,
+    nombre             VARCHAR2(100) NOT NULL,
+    sueldo             INTEGER NOT NULL
+);
 
+ALTER TABLE catedratico ADD CONSTRAINT catedratico_pk PRIMARY KEY ( codigo_catedratico );
 
--- -----------------------------------------------------
--- Table `sbd1p1`.`catedratico`
--- -----------------------------------------------------
-DROP TABLE IF EXISTS `sbd1p1`.`catedratico` ;
+CREATE TABLE curso (
+    codigo_curso INTEGER NOT NULL,
+    nombre       VARCHAR2(100) NOT NULL
+);
 
-CREATE TABLE IF NOT EXISTS `sbd1p1`.`catedratico` (
-  `codigo_catedratico` VARCHAR(10) NOT NULL,
-  `nombre_completo` VARCHAR(100) NULL DEFAULT NULL,
-  `sueldo_mensual` INT NULL DEFAULT NULL,
-  PRIMARY KEY (`codigo_catedratico`))
+ALTER TABLE curso ADD CONSTRAINT curso_pk PRIMARY KEY ( codigo_curso );
 
+CREATE TABLE dia (
+    codigo_dia INTEGER NOT NULL,
+    dia        VARCHAR2(100) NOT NULL
+);
 
--- -----------------------------------------------------
--- Table `sbd1p1`.`curso`
--- -----------------------------------------------------
-DROP TABLE IF EXISTS `sbd1p1`.`curso` ;
+ALTER TABLE dia ADD CONSTRAINT dia_pk PRIMARY KEY ( codigo_dia );
 
-CREATE TABLE IF NOT EXISTS `sbd1p1`.`curso` (
-  `codigo_curso` VARCHAR(10) NOT NULL,
-  `nombre_curso` VARCHAR(100) NULL DEFAULT NULL,
-  PRIMARY KEY (`codigo_curso`))
+CREATE TABLE edificio (
+    codigo_edificio INTEGER NOT NULL,
+    nombre_edificio VARCHAR2(100) NOT NULL
+);
 
+ALTER TABLE edificio ADD CONSTRAINT edificio_pk PRIMARY KEY ( codigo_edificio );
 
--- -----------------------------------------------------
--- Table `sbd1p1`.`edificio`
--- -----------------------------------------------------
-DROP TABLE IF EXISTS `sbd1p1`.`edificio` ;
+CREATE TABLE estudiante (
+    numero_de_carnet INTEGER NOT NULL,
+    nombre           VARCHAR2(30) NOT NULL,
+    ingreso_familiar VARCHAR2(100),
+    fecha_nacimiento DATE NOT NULL
+);
 
-CREATE TABLE IF NOT EXISTS `sbd1p1`.`edificio` (
-  `codigo_edificio` VARCHAR(10) NOT NULL,
-  `nombre_edificio` VARCHAR(100) NULL DEFAULT NULL,
-  PRIMARY KEY (`codigo_edificio`))
+ALTER TABLE estudiante ADD CONSTRAINT estudiante_pk PRIMARY KEY ( numero_de_carnet );
 
+CREATE TABLE horario (
+    codigo_horario         INTEGER NOT NULL,
+    salon_codigo_salon     INTEGER NOT NULL,
+    dia_codigo_dia         INTEGER NOT NULL,
+    periodo_codigo_periodo INTEGER NOT NULL,
+    seccion_codigo_seccion INTEGER NOT NULL
+);
 
--- -----------------------------------------------------
--- Table `sbd1p1`.`estudiante`
--- -----------------------------------------------------
-DROP TABLE IF EXISTS `sbd1p1`.`estudiante` ;
+ALTER TABLE horario ADD CONSTRAINT horario_pk PRIMARY KEY ( codigo_horario );
 
-CREATE TABLE IF NOT EXISTS `sbd1p1`.`estudiante` (
-  `numero_carnet` VARCHAR(10) NOT NULL,
-  `nombre_completo` VARCHAR(100) NULL DEFAULT NULL,
-  `ingreso_familiar` INT NULL DEFAULT NULL,
-  `fecha_nacimiento` DATE NULL DEFAULT NULL,
-  PRIMARY KEY (`numero_carnet`))
+CREATE TABLE inscripcion (
+    estudiante_numero_de_carnet INTEGER NOT NULL,
+    plan_codigo_plan            INTEGER NOT NULL,
+    fecha_inscripcion           DATE NOT NULL
+);
 
+ALTER TABLE inscripcion ADD CONSTRAINT inscripcion_pk PRIMARY KEY ( estudiante_numero_de_carnet );
 
--- -----------------------------------------------------
--- Table `sbd1p1`.`salon`
--- -----------------------------------------------------
-DROP TABLE IF EXISTS `sbd1p1`.`salon` ;
+CREATE TABLE pensum (
+    codigo             INTEGER NOT NULL,
+    obligatoriedad     VARCHAR2(100) NOT NULL,
+    creditos_obtenidos INTEGER NOT NULL,
+    nota_aprobacion    INTEGER NOT NULL,
+    zona_minima        INTEGER NOT NULL,
+    plan_codigo_plan   INTEGER NOT NULL,
+    curso_codigo_curso INTEGER NOT NULL
+);
 
-CREATE TABLE IF NOT EXISTS `sbd1p1`.`salon` (
-  `codigo_salon` VARCHAR(10) NOT NULL,
-  `codigo_edificio` VARCHAR(10) NULL DEFAULT NULL,
-  `capacidad` INT NULL DEFAULT NULL,
-  PRIMARY KEY (`codigo_salon`),
-  INDEX `codigo_edificio` (`codigo_edificio` ASC) VISIBLE,
-  CONSTRAINT `salon_ibfk_1`
-    FOREIGN KEY (`codigo_edificio`)
-    REFERENCES `sbd1p1`.`edificio` (`codigo_edificio`))
+ALTER TABLE pensum ADD CONSTRAINT pensum_pk PRIMARY KEY ( codigo );
 
+CREATE TABLE periodo (
+    codigo_periodo INTEGER NOT NULL,
+    horario_inicio VARCHAR2(100) NOT NULL,
+    horario_final  VARCHAR2(100) NOT NULL
+);
 
--- -----------------------------------------------------
--- Table `sbd1p1`.`seccion`
--- -----------------------------------------------------
-DROP TABLE IF EXISTS `sbd1p1`.`seccion` ;
+ALTER TABLE periodo ADD CONSTRAINT periodo_pk PRIMARY KEY ( codigo_periodo );
 
-CREATE TABLE IF NOT EXISTS `sbd1p1`.`seccion` (
-  `codigo_seccion` VARCHAR(10) NOT NULL,
-  `codigo_curso` VARCHAR(10) NULL DEFAULT NULL,
-  `codigo_catedratico` VARCHAR(10) NULL DEFAULT NULL,
-  `codigo_salon` VARCHAR(10) NULL DEFAULT NULL,
-  `año` INT NULL DEFAULT NULL,
-  `ciclo` VARCHAR(10) NULL DEFAULT NULL,
-  PRIMARY KEY (`codigo_seccion`),
-  INDEX `codigo_curso` (`codigo_curso` ASC) VISIBLE,
-  INDEX `codigo_catedratico` (`codigo_catedratico` ASC) VISIBLE,
-  INDEX `codigo_salon` (`codigo_salon` ASC) VISIBLE,
-  CONSTRAINT `seccion_ibfk_1`
-    FOREIGN KEY (`codigo_curso`)
-    REFERENCES `sbd1p1`.`curso` (`codigo_curso`),
-  CONSTRAINT `seccion_ibfk_2`
-    FOREIGN KEY (`codigo_catedratico`)
-    REFERENCES `sbd1p1`.`catedratico` (`codigo_catedratico`),
-  CONSTRAINT `seccion_ibfk_3`
-    FOREIGN KEY (`codigo_salon`)
-    REFERENCES `sbd1p1`.`salon` (`codigo_salon`))
+CREATE TABLE plan (
+    codigo_plan            INTEGER NOT NULL,
+    nombre                 VARCHAR2(100) NOT NULL,
+    año_inicio             DATE NOT NULL,
+    año_fin                DATE NOT NULL,
+    ciclo_inicio           DATE NOT NULL,
+    ciclo_fin              DATE NOT NULL,
+    creditos_necesarios    INTEGER NOT NULL,
+    carrera_codigo_carrera INTEGER NOT NULL
+);
 
+ALTER TABLE plan ADD CONSTRAINT plan_pk PRIMARY KEY ( codigo_plan );
 
--- -----------------------------------------------------
--- Table `sbd1p1`.`horario`
--- -----------------------------------------------------
-DROP TABLE IF EXISTS `sbd1p1`.`horario` ;
+CREATE TABLE prerrequisito (
+    codigo              INTEGER NOT NULL,
+    carrera             VARCHAR2(100) NOT NULL,
+    plan                VARCHAR2(100) NOT NULL,
+    curso_codigo_curso  INTEGER NOT NULL,
+    curso_codigo_curso1 INTEGER NOT NULL
+);
 
-CREATE TABLE IF NOT EXISTS `sbd1p1`.`horario` (
-  `codigo_horario` VARCHAR(10) NOT NULL,
-  `codigo_seccion` VARCHAR(10) NULL DEFAULT NULL,
-  `dia` VARCHAR(20) NULL DEFAULT NULL,
-  `hora_inicio` TIME NULL DEFAULT NULL,
-  `hora_fin` TIME NULL DEFAULT NULL,
-  PRIMARY KEY (`codigo_horario`),
-  INDEX `codigo_seccion` (`codigo_seccion` ASC) VISIBLE,
-  CONSTRAINT `horario_ibfk_1`
-    FOREIGN KEY (`codigo_seccion`)
-    REFERENCES `sbd1p1`.`seccion` (`codigo_seccion`))
+ALTER TABLE prerrequisito ADD CONSTRAINT prerrequisito_pk PRIMARY KEY ( codigo );
 
+CREATE TABLE salon (
+    codigo_salon             INTEGER NOT NULL,
+    capacidad                INTEGER NOT NULL,
+    edificio_codigo_edificio INTEGER NOT NULL
+);
 
--- -----------------------------------------------------
--- Table `sbd1p1`.`plan`
--- -----------------------------------------------------
-DROP TABLE IF EXISTS `sbd1p1`.`plan` ;
+ALTER TABLE salon ADD CONSTRAINT salon_pk PRIMARY KEY ( codigo_salon );
 
-CREATE TABLE IF NOT EXISTS `sbd1p1`.`plan` (
-  `codigo_plan` VARCHAR(10) NOT NULL,
-  `codigo_carrera` VARCHAR(10) NULL DEFAULT NULL,
-  `nombre_plan` VARCHAR(100) NULL DEFAULT NULL,
-  `año_inicio` INT NULL DEFAULT NULL,
-  `ciclo_inicio` VARCHAR(10) NULL DEFAULT NULL,
-  `año_fin` INT NULL DEFAULT NULL,
-  `ciclo_fin` VARCHAR(10) NULL DEFAULT NULL,
-  `creditos_necesarios` INT NULL DEFAULT NULL,
-  PRIMARY KEY (`codigo_plan`),
-  INDEX `codigo_carrera` (`codigo_carrera` ASC) VISIBLE,
-  CONSTRAINT `plan_ibfk_1`
-    FOREIGN KEY (`codigo_carrera`)
-    REFERENCES `sbd1p1`.`carrera` (`codigo_carrera`))
+CREATE TABLE seccion (
+    codigo_seccion                 INTEGER NOT NULL,
+    año                            DATE NOT NULL,
+    ciclo                          VARCHAR2(100),
+    curso_codigo_curso             INTEGER NOT NULL,
+    catedratico_codigo_catedratico INTEGER NOT NULL
+);
 
+ALTER TABLE seccion ADD CONSTRAINT seccion_pk PRIMARY KEY ( codigo_seccion );
 
--- -----------------------------------------------------
--- Table `sbd1p1`.`inscripcion`
--- -----------------------------------------------------
-DROP TABLE IF EXISTS `sbd1p1`.`inscripcion` ;
+ALTER TABLE asignacion
+    ADD CONSTRAINT asignacion_estudiante_fk FOREIGN KEY ( estudiante_numero_de_carnet )
+        REFERENCES estudiante ( numero_de_carnet );
 
-CREATE TABLE IF NOT EXISTS `sbd1p1`.`inscripcion` (
-  `codigo_carrera` VARCHAR(10) NOT NULL,
-  `numero_carnet` VARCHAR(10) NOT NULL,
-  `codigo_plan` VARCHAR(10) NULL DEFAULT NULL,
-  `fecha_inscripcion` DATE NULL DEFAULT NULL,
-  PRIMARY KEY (`codigo_carrera`, `numero_carnet`),
-  INDEX `codigo_carrera` (`codigo_carrera` ASC, `codigo_plan` ASC) VISIBLE,
-  INDEX `numero_carnet` (`numero_carnet` ASC) VISIBLE,
-  CONSTRAINT `inscripcion_ibfk_1`
-    FOREIGN KEY (`codigo_carrera` , `codigo_plan`)
-    REFERENCES `sbd1p1`.`plan` (`codigo_carrera` , `codigo_plan`),
-  CONSTRAINT `inscripcion_ibfk_2`
-    FOREIGN KEY (`numero_carnet`)
-    REFERENCES `sbd1p1`.`estudiante` (`numero_carnet`))
+ALTER TABLE asignacion
+    ADD CONSTRAINT asignacion_seccion_fk FOREIGN KEY ( seccion_codigo_seccion )
+        REFERENCES seccion ( codigo_seccion );
 
+ALTER TABLE horario
+    ADD CONSTRAINT horario_dia_fk FOREIGN KEY ( dia_codigo_dia )
+        REFERENCES dia ( codigo_dia );
 
--- -----------------------------------------------------
--- Table `sbd1p1`.`pensum`
--- -----------------------------------------------------
-DROP TABLE IF EXISTS `sbd1p1`.`pensum` ;
+ALTER TABLE horario
+    ADD CONSTRAINT horario_periodo_fk FOREIGN KEY ( periodo_codigo_periodo )
+        REFERENCES periodo ( codigo_periodo );
 
-CREATE TABLE IF NOT EXISTS `sbd1p1`.`pensum` (
-  `codigo_pensum` VARCHAR(10) NOT NULL,
-  `codigo_carrera` VARCHAR(10) NULL DEFAULT NULL,
-  `codigo_plan` VARCHAR(10) NULL DEFAULT NULL,
-  `codigo_curso` VARCHAR(10) NULL DEFAULT NULL,
-  `obligatoriedad` CHAR(1) NULL DEFAULT NULL,
-  `creditos_obtenidos` INT NULL DEFAULT NULL,
-  `nota_aprobacion` INT NULL DEFAULT NULL,
-  `zona_minima` INT NULL DEFAULT NULL,
-  `codigo_curso_prerrequisito` VARCHAR(10) NULL DEFAULT NULL,
-  PRIMARY KEY (`codigo_pensum`),
-  INDEX `codigo_carrera` (`codigo_carrera` ASC, `codigo_plan` ASC) VISIBLE,
-  INDEX `codigo_curso` (`codigo_curso` ASC) VISIBLE,
-  CONSTRAINT `pensum_ibfk_1`
-    FOREIGN KEY (`codigo_carrera` , `codigo_plan`)
-    REFERENCES `sbd1p1`.`plan` (`codigo_carrera` , `codigo_plan`),
-  CONSTRAINT `pensum_ibfk_2`
-    FOREIGN KEY (`codigo_curso`)
-    REFERENCES `sbd1p1`.`curso` (`codigo_curso`))
+ALTER TABLE horario
+    ADD CONSTRAINT horario_salon_fk FOREIGN KEY ( salon_codigo_salon )
+        REFERENCES salon ( codigo_salon );
 
+ALTER TABLE horario
+    ADD CONSTRAINT horario_seccion_fk FOREIGN KEY ( seccion_codigo_seccion )
+        REFERENCES seccion ( codigo_seccion );
 
--- -----------------------------------------------------
--- Table `sbd1p1`.`prerrequisito`
--- -----------------------------------------------------
-DROP TABLE IF EXISTS `sbd1p1`.`prerrequisito` ;
+ALTER TABLE inscripcion
+    ADD CONSTRAINT inscripcion_estudiante_fk FOREIGN KEY ( estudiante_numero_de_carnet )
+        REFERENCES estudiante ( numero_de_carnet );
 
-CREATE TABLE IF NOT EXISTS `sbd1p1`.`prerrequisito` (
-  `codigo_curso` VARCHAR(10) NOT NULL,
-  `codigo_curso_prerrequisito` VARCHAR(10) NOT NULL,
-  PRIMARY KEY (`codigo_curso`, `codigo_curso_prerrequisito`),
-  INDEX `codigo_curso_prerrequisito` (`codigo_curso_prerrequisito` ASC) VISIBLE,
-  CONSTRAINT `prerrequisito_ibfk_1`
-    FOREIGN KEY (`codigo_curso`)
-    REFERENCES `sbd1p1`.`curso` (`codigo_curso`),
-  CONSTRAINT `prerrequisito_ibfk_2`
-    FOREIGN KEY (`codigo_curso_prerrequisito`)
-    REFERENCES `sbd1p1`.`curso` (`codigo_curso`))
+ALTER TABLE inscripcion
+    ADD CONSTRAINT inscripcion_plan_fk FOREIGN KEY ( plan_codigo_plan )
+        REFERENCES plan ( codigo_plan );
+
+ALTER TABLE pensum
+    ADD CONSTRAINT pensum_curso_fk FOREIGN KEY ( curso_codigo_curso )
+        REFERENCES curso ( codigo_curso );
+
+ALTER TABLE pensum
+    ADD CONSTRAINT pensum_plan_fk FOREIGN KEY ( plan_codigo_plan )
+        REFERENCES plan ( codigo_plan );
+
+ALTER TABLE plan
+    ADD CONSTRAINT plan_carrera_fk FOREIGN KEY ( carrera_codigo_carrera )
+        REFERENCES carrera ( codigo_carrera );
+
+ALTER TABLE prerrequisito
+    ADD CONSTRAINT prerrequisito_curso_fk FOREIGN KEY ( curso_codigo_curso )
+        REFERENCES curso ( codigo_curso );
+
+ALTER TABLE prerrequisito
+    ADD CONSTRAINT prerrequisito_curso_fkv1 FOREIGN KEY ( curso_codigo_curso1 )
+        REFERENCES curso ( codigo_curso );
+
+ALTER TABLE salon
+    ADD CONSTRAINT salon_edificio_fk FOREIGN KEY ( edificio_codigo_edificio )
+        REFERENCES edificio ( codigo_edificio );
+
+ALTER TABLE seccion
+    ADD CONSTRAINT seccion_catedratico_fk FOREIGN KEY ( catedratico_codigo_catedratico )
+        REFERENCES catedratico ( codigo_catedratico );
+
+ALTER TABLE seccion
+    ADD CONSTRAINT seccion_curso_fk FOREIGN KEY ( curso_codigo_curso )
+        REFERENCES curso ( codigo_curso );

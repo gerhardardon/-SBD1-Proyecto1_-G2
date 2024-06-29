@@ -1,5 +1,3 @@
-/*aprobacion curso */
-
 ALTER TABLE Inscripcion
 ADD CONSTRAINT check_aprobacion_curso
 CHECK (
@@ -13,7 +11,6 @@ CHECK (
     )
 );
 
-/*Esta restricción asegura que una sección no pueda existir si no hay ningún estudiante inscrito que haya aprobado los cursos necesarios.*/
 ALTER TABLE Seccion
 ADD CONSTRAINT check_promedio
 CHECK (
@@ -24,7 +21,6 @@ CHECK (
     )
 );
 
-/*cierre_carrera*/
 ALTER TABLE Plan
 ADD CONSTRAINT check_cierre_carrera
 CHECK (
@@ -36,8 +32,6 @@ CHECK (
     )
 );
 
-
-/*mejor_estudiante*/
 ALTER TABLE Estudiante
 ADD CONSTRAINT check_mejor_estudiante
 CHECK (
