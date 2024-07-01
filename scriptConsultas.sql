@@ -1,48 +1,111 @@
 /*1. Mostrar el estudiante con mejor promedio por carrera el cual haya empezado a
 estudiar antes del 2022.*/
 
-SELECT e.numero_carnet, e.nombre_completo, e.numero_carrera, AVG(i.nota) AS promedio
-FROM Estudiante e
-JOIN Inscripcion i ON e.numero_carnet = i.numero_carnet
-JOIN Carrera c ON e.numero_carrera = c.numero_carrera
-WHERE i.fecha_inscripcion < TO_DATE('2022-01-01', 'YYYY-MM-DD')
-GROUP BY e.numero_carnet, e.nombre_completo, e.numero_carrera
-HAVING AVG(i.nota) = (
-    SELECT MAX(promedio)
-    FROM (
-        SELECT e.numero_carrera, AVG(i.nota) AS promedio
-        FROM Estudiante e
-        JOIN Inscripcion i ON e.numero_carnet = i.numero_carnet
-        WHERE i.fecha_inscripcion < TO_DATE('2022-01-01', 'YYYY-MM-DD')
-        GROUP BY e.numero_carrera
-    )
-);
+-- Consulta 1
+WITH estudiantes_promedio AS (
+    SELECT
+        e.numero_de_carnet,
+        e.nombre AS nombre_estudiante,
+        AVG(a.nota) AS promedio,
+        p.carrera_codigo_carrera
+    FROM
+        estudiante e
+    INNER JOIN
+        inscripcion i ON e.numero_de_carnet = i.estudiante_numero_de_carnet
+    INNER JOIN
+        pensum pe ON i.plan_codigo_plan = pe.plan_codigo_plan
+    INNER JOIN
+        asignacion a ON i.estudiante_numero_de_carnet = a.estudiante_numero_de_carnet
+    INNER JOIN
+        seccion s ON a.seccion_codigo_seccion = s.codigo_seccion
+    INNER JOIN
+        curso c ON s.curso_codigo_curso = c.codigo_curso
+    INNER JOIN
+        plan p ON pe.plan_codigo_plan = p.codigo_plan
+    WHERE
+        TO_CHAR(i.fecha_inscripcion, 'YYYY') < '2022'
+    GROUP BY
+        e.numero_de_carnet,
+        e.nombre,
+        p.carrera_codigo_carrera
+),
+mejor_promedio_por_carrera AS (
+    SELECT
+        p.carrera_codigo_carrera,
+        MAX(ep.promedio) AS mejor_promedio
+    FROM
+        estudiantes_promedio ep
+    INNER JOIN
+        plan p ON ep.carrera_codigo_carrera = p.codigo_plan
+    GROUP BY
+        p.carrera_codigo_carrera
+)
+SELECT
+    ep.numero_de_carnet,
+    ep.nombre_estudiante,
+    ep.promedio,
+    c.nombre AS nombre_carrera
+FROM
+    estudiantes_promedio ep
+INNER JOIN
+    mejor_promedio_por_carrera mp ON ep.carrera_codigo_carrera = mp.carrera_codigo_carrera
+INNER JOIN
+    carrera c ON ep.carrera_codigo_carrera = c.codigo_carrera
+WHERE
+    ep.promedio = mp.mejor_promedio;
 
 /*2. Mostrar los cursos que se imparten en un mismo horario en un ciclo y año
 determinado, debe mostrar código de curso, nombre del curso, carrera a la que
 pertenece, sección, horario, día, salón, edificio y catedrático que lo imparte.
 Remplazar ciclo y año*/
 
-SELECT c.codigo_curso, c.nombre_curso, carr.nombre_carrera, sec.codigo_seccion, h.dia, h.hora_inicio, h.hora_fin, s.codigo_salon, s.codigo_edificio, cat.nombre_completo AS nombre_catedratico
-FROM Curso c
-JOIN Seccion sec ON c.codigo_curso = sec.codigo_curso
-JOIN Horario h ON sec.codigo_seccion = h.codigo_seccion
-JOIN Salon s ON h.codigo_salon = s.codigo_salon
-JOIN Catedratico cat ON sec.codigo_catedratico = cat.codigo_catedratico
-JOIN Carrera carr ON c.codigo_carrera = carr.codigo_carrera
-WHERE h.ciclo = 'Ciclo_determinado' AND h.anno = 'Año_determinado';
+-- Consulta 2
+SELECT
+    c.codigo_curso,
+    c.nombre AS nombre_curso,
+    carr.nombre AS nombre_carrera,
+    s.codigo_seccion AS seccion,
+    p.horario_inicio || ' - ' || p.horario_final AS horario,
+    d.dia,
+    sa.codigo_salon AS salon,
+    e.nombre_edificio AS edificio,
+    cat.nombre AS nombre_catedratico
+FROM
+    curso c
+INNER JOIN
+    pensum pe ON c.codigo_curso = pe.curso_codigo_curso
+INNER JOIN
+    plan pl ON pe.plan_codigo_plan = pl.codigo_plan
+INNER JOIN
+    carrera carr ON pl.carrera_codigo_carrera = carr.codigo_carrera
+INNER JOIN
+    seccion s ON c.codigo_curso = s.curso_codigo_curso
+INNER JOIN
+    horario h ON s.codigo_seccion = h.seccion_codigo_seccion
+INNER JOIN
+    dia d ON h.dia_codigo_dia = d.codigo_dia
+INNER JOIN
+    periodo p ON h.periodo_codigo_periodo = p.codigo_periodo
+INNER JOIN
+    salon sa ON h.salon_codigo_salon = sa.codigo_salon
+INNER JOIN
+    edificio e ON sa.edificio_codigo_edificio = e.codigo_edificio
+INNER JOIN
+    catedratico cat ON s.catedratico_codigo_catedratico = cat.codigo_catedratico
+WHERE
+    s.ciclo = '1' -- Reemplazar con el ciclo específico
+    AND EXTRACT(YEAR FROM s.año) = 2020 -- Extraer el año de la columna s.año y comparar
+ORDER BY
+    p.horario_inicio,d.dia;
 
 /*3. Mostrar la información de los cursos pertenecientes a una carrera en específico.
 reemplazar Nombre_Carrera_Especifica */
 
-SELECT c.codigo_curso, c.nombre_curso, carr.nombre_carrera, sec.codigo_seccion, h.dia, h.hora_inicio, h.hora_fin, s.codigo_salon, s.codigo_edificio, cat.nombre_completo AS nombre_catedratico
-FROM Curso c
-JOIN Seccion sec ON c.codigo_curso = sec.codigo_curso
-JOIN Horario h ON sec.codigo_seccion = h.codigo_seccion
-JOIN Salon s ON h.codigo_salon = s.codigo_salon
-JOIN Catedratico cat ON sec.codigo_catedratico = cat.codigo_catedratico
-JOIN Carrera carr ON c.codigo_carrera = carr.codigo_carrera
-WHERE carr.nombre_carrera = 'Nombre_Carrera_Especifica';
+SELECT c.codigo_curso, c.nombre AS nombre_curso, ca.nombre AS nombre_carrera
+FROM curso c
+JOIN pensum p ON c.codigo_curso = p.curso_codigo_curso
+JOIN carrera ca ON p.plan_codigo_plan = ca.codigo_carrera
+WHERE ca.nombre='Sistemas';
 
 
 /*4. Mostrarla información de los cursos prerrequisito y post requisito de un curso en
@@ -66,12 +129,45 @@ WHERE
 
 /*5. Mostrar los cursos impartidos por un determinado docente, mostrar la información
 necesaria para cada curso.*/
-
+SELECT
+    c.nombre AS nombre_curso,
+    s.año,
+    s.ciclo,
+    ct.nombre AS nombre_catedratico
+FROM
+    curso c
+JOIN
+    seccion s ON c.codigo_curso = s.curso_codigo_curso
+JOIN
+    catedratico ct ON s.catedratico_codigo_catedratico = ct.codigo_catedratico
+WHERE
+    ct.nombre = 'Ing. Marco Pérez';
 
 /*6. Mostrar las aprobaciones de estudiantes para un determinado curso, se debe
 mostrar nombre del estudiante, el código del curso o nombre, el número de carné,
 y si aprobó o no.*/
 
+SELECT
+    e.nombre AS nombre_estudiante,
+    e.numero_de_carnet,
+    c.codigo_curso,
+    c.nombre AS nombre_curso,
+    CASE
+        WHEN a.nota >= 61 THEN 'Aprobó'
+        ELSE 'No Aprobó'
+    END AS estado_aprobacion
+FROM
+    asignacion a
+JOIN
+    estudiante e ON a.estudiante_numero_de_carnet = e.numero_de_carnet
+JOIN
+    seccion s ON a.seccion_codigo_seccion = s.codigo_seccion
+JOIN
+    curso c ON s.curso_codigo_curso = c.codigo_curso
+JOIN
+    pensum p ON c.codigo_curso = p.curso_codigo_curso
+WHERE
+    c.codigo_curso = 1;  -- Reemplaza # con el código del curso deseado
 
 /*7. Dar el nombre del estudiante, promedio, y número de créditos ganados, para los
 estudiantes que han cerrado Ingeniería en Ciencias y Sistemas.*/
