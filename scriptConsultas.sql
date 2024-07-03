@@ -151,123 +151,140 @@ WHERE
 estudiantes que han cerrado Ingeniería en Ciencias y Sistemas.*/
 SELECT
     e.nombre AS nombre_estudiante,
-    e.numero_de_carnet,
     AVG(a.nota) AS promedio,
     SUM(p.creditos_obtenidos) AS creditos_ganados
 FROM
-    asignacion a
-    JOIN estudiante e ON a.estudiante_numero_de_carnet = e.numero_de_carnet
-    JOIN seccion s ON a.seccion_codigo_seccion = s.codigo_seccion
-    JOIN curso c ON s.curso_codigo_curso = c.codigo_curso
-    JOIN pensum p ON c.codigo_curso = p.curso_codigo_curso
-    JOIN plan pl ON p.plan_codigo_plan = pl.codigo_plan
-    JOIN carrera ca ON pl.carrera_codigo_carrera = ca.codigo_carrera
+    estudiante e
+JOIN
+    asignacion a ON e.numero_de_carnet = a.estudiante_numero_de_carnet
+JOIN
+    seccion s ON a.seccion_codigo_seccion = s.codigo_seccion
+JOIN
+    pensum p ON s.curso_codigo_curso = p.curso_codigo_curso
+JOIN
+    plan pl ON p.plan_codigo_plan = pl.codigo_plan
+JOIN
+    carrera c ON pl.carrera_codigo_carrera = c.codigo_carrera
 WHERE
-    ca.nombre = 'Ingeniería en Ciencias y Sistemas'
+    c.nombre = 'Ingeniería en Sistemas'
 GROUP BY
     e.nombre,
-    e.numero_de_carnet;
+    pl.creditos_necesarios
+HAVING
+    SUM(p.creditos_obtenidos) >= pl.creditos_necesarios;
+
+
+commit;
+
+
 
 /*8. Dar el nombre del estudiante nombre de la carrera, promedio y número de créditos
 ganados, para los estudiantes que han cerrado en alguna carrera, estén inscritos en
 ella o no.*/
 SELECT
     e.nombre AS nombre_estudiante,
-    ca.nombre AS nombre_carrera,
+    c.nombre AS nombre_carrera,
     AVG(a.nota) AS promedio,
     SUM(p.creditos_obtenidos) AS creditos_ganados
 FROM
-    asignacion a
-    JOIN estudiante e ON a.estudiante_numero_de_carnet = e.numero_de_carnet
-    JOIN seccion s ON a.seccion_codigo_seccion = s.codigo_seccion
-    JOIN curso c ON s.curso_codigo_curso = c.codigo_curso
-    JOIN pensum p ON c.codigo_curso = p.curso_codigo_curso
-    JOIN plan pl ON p.plan_codigo_plan = pl.codigo_plan
-    JOIN carrera ca ON pl.carrera_codigo_carrera = ca.codigo_carrera
-WHERE
-    e.numero_de_carnet IN (
-        SELECT
-            i.estudiante_numero_de_carnet
-        FROM
-            inscripcion i
-            JOIN plan p2 ON i.plan_codigo_plan = p2.codigo_plan
-            JOIN carrera c2 ON p2.carrera_codigo_carrera = c2.codigo_carrera
-    )
+    estudiante e
+JOIN
+    asignacion a ON e.numero_de_carnet = a.estudiante_numero_de_carnet
+JOIN
+    seccion s ON a.seccion_codigo_seccion = s.codigo_seccion
+JOIN
+    pensum p ON s.curso_codigo_curso = p.curso_codigo_curso
+JOIN
+    plan pl ON p.plan_codigo_plan = pl.codigo_plan
+JOIN
+    carrera c ON pl.carrera_codigo_carrera = c.codigo_carrera
 GROUP BY
     e.nombre,
-    ca.nombre,
-    e.numero_de_carnet;
+    c.nombre,
+    pl.creditos_necesarios
+HAVING
+    SUM(p.creditos_obtenidos) >= pl.creditos_necesarios;
+
 
 /*9. Dar el nombre de los estudiantes que han ganado algún curso con alguno de los
 catedráticos que han impartido alguno de los cursos de la carrera de sistemas en
 alguno de los planes que se impartieron en el semestre pasado.*/
+WITH catedraticos_sistemas AS (
+    SELECT DISTINCT
+        s.catedratico_codigo_catedratico
+    FROM
+        seccion s
+    JOIN
+        curso c ON s.curso_codigo_curso = c.codigo_curso
+    JOIN
+        pensum p ON c.codigo_curso = p.curso_codigo_curso
+    JOIN
+        plan pl ON p.plan_codigo_plan = pl.codigo_plan
+    JOIN
+        carrera ca ON pl.carrera_codigo_carrera = ca.codigo_carrera
+    WHERE
+        ca.nombre = 'Ingeniería en Sistemas'
+        AND s.año BETWEEN DATE '2021-01-01' AND DATE '2021-06-30'
+)
 SELECT DISTINCT
-    e.nombre
+    e.nombre AS nombre_estudiante
 FROM
     estudiante e
-    JOIN inscripcion i ON e.numero_de_carnet = i.estudiante_numero_de_carnet
-    JOIN asignacion a ON i.estudiante_numero_de_carnet = a.estudiante_numero_de_carnet
-    JOIN seccion s ON a.seccion_codigo_seccion = s.codigo_seccion
-    JOIN catedratico c ON s.catedratico_codigo_catedratico = c.codigo_catedratico
-    JOIN curso cu ON s.curso_codigo_curso = cu.codigo_curso
-    JOIN plan p ON i.plan_codigo_plan = p.codigo_plan
-    JOIN carrera ca ON p.carrera_codigo_carrera = ca.codigo_carrera
-    JOIN pensum pe ON cu.codigo_curso = pe.curso_codigo_curso
-    AND p.codigo_plan = pe.plan_codigo_plan
+JOIN
+    asignacion a ON e.numero_de_carnet = a.estudiante_numero_de_carnet
+JOIN
+    seccion s ON a.seccion_codigo_seccion = s.codigo_seccion
+JOIN
+    catedraticos_sistemas cs ON s.catedratico_codigo_catedratico = cs.catedratico_codigo_catedratico
 WHERE
-    ca.nombre = 'Sistemas'
-    AND a.nota >= pe.nota_aprobacion
-    AND p.ciclo_inicio <= ADD_MONTHS (SYSDATE, -6)
-    AND p.ciclo_fin >= ADD_MONTHS (SYSDATE, -6);
+    a.nota >= 61;
+
 
 /*10. Para un estudiante determinado que, ha cerrado en alguna carrera, dar el nombre
 de los estudiantes que llevaron con él todos los cursos.*/
--- CUrsos del estudiante
-WITH
-    cursos_del_estudiante AS (
-        SELECT
-            s.curso_codigo_curso
-        FROM
-            asignacion a
-            JOIN seccion s ON a.seccion_codigo_seccion = s.codigo_seccion
-        WHERE
-            a.estudiante_numero_de_carnet = -- Reemplazar con el número de carnet del estudiante1
-    ),
-    -- Estudiantes con los mismos cursos
-    estudiantes_mismos_cursos AS (
-        SELECT
-            a.estudiante_numero_de_carnet
-        FROM
-            asignacion a
-            JOIN seccion s ON a.seccion_codigo_seccion = s.codigo_seccion
-        WHERE
-            s.curso_codigo_curso IN (
-                SELECT
-                    curso_codigo_curso
-                FROM
-                    cursos_del_estudiante
-            )
-        GROUP BY
-            a.estudiante_numero_de_carnet
-        HAVING
-            COUNT(DISTINCT s.curso_codigo_curso) = (
-                SELECT
-                    COUNT(*)
-                FROM
-                    cursos_del_estudiante
-            )
-    )
-    -- NOmbres
+-- Paso 1: Identificar los cursos que el estudiante específico ha completado
+WITH cursos_del_estudiante AS (
+    SELECT
+        a.seccion_codigo_seccion,
+        s.curso_codigo_curso
+    FROM
+        asignacion a
+    JOIN
+        seccion s ON a.seccion_codigo_seccion = s.codigo_seccion
+    WHERE
+        a.estudiante_numero_de_carnet = 1001
+        AND a.nota >= 61  -- Suponiendo que 60 es la nota mínima para aprobar el curso
+),
+-- Paso 2: Obtener la lista de estudiantes que hayan completado cada uno de los cursos del estudiante específico
+estudiantes_que_completaron_cursos AS (
+    SELECT
+        a.estudiante_numero_de_carnet,
+        a.seccion_codigo_seccion,
+        s.curso_codigo_curso
+    FROM
+        asignacion a
+    JOIN
+        seccion s ON a.seccion_codigo_seccion = s.codigo_seccion
+    JOIN
+        cursos_del_estudiante cde ON s.curso_codigo_curso = cde.curso_codigo_curso
+    WHERE
+        a.nota >= 61
+)
+-- Paso 3: Contar cuántos cursos en común tienen los estudiantes con el estudiante específico
 SELECT
-    e.nombre
+    e.nombre AS nombre_estudiante
 FROM
     estudiante e
+JOIN
+    (SELECT
+        e2.estudiante_numero_de_carnet,
+        COUNT(e2.curso_codigo_curso) AS cursos_en_comun
+     FROM
+        estudiantes_que_completaron_cursos e2
+     GROUP BY
+        e2.estudiante_numero_de_carnet
+     HAVING
+        COUNT(e2.curso_codigo_curso) = (SELECT COUNT(*) FROM cursos_del_estudiante)
+    ) ec ON e.numero_de_carnet = ec.estudiante_numero_de_carnet
 WHERE
-    e.numero_de_carnet IN (
-        SELECT
-            estudiante_numero_de_carnet
-        FROM
-            estudiantes_mismos_cursos
-    )
-    AND e.numero_de_carnet <> -- Reemplazar con el número de carnet del estudiante1
-;
+    e.numero_de_carnet <> 1001;  -- Excluir al estudiante específico
